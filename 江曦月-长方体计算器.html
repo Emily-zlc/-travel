@@ -1,0 +1,209 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>江曦月的长方体表面积与体积计算器</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: "Microsoft YaHei", sans-serif;
+        }
+        body {
+            background-color: #f0f8ff;
+            padding: 20px;
+            max-width: 800px;
+            margin: 0 auto;
+        }
+        .container {
+            background: white;
+            border-radius: 12px;
+            padding: 30px;
+            box-shadow: 0 4px 12px rgba(0,0,0,0.1);
+        }
+        h1 {
+            text-align: center;
+            color: #2c3e50;
+            margin-bottom: 30px;
+            border-bottom: 2px solid #3498db;
+            padding-bottom: 10px;
+        }
+        .step-box {
+            background: #f8f9fa;
+            padding: 15px;
+            border-radius: 8px;
+            margin-bottom: 25px;
+            border-left: 4px solid #3498db;
+        }
+        .step-title {
+            font-weight: bold;
+            color: #2c3e50;
+            margin-bottom: 8px;
+            font-size: 1.1em;
+        }
+        .input-group {
+            margin: 15px 0;
+        }
+        label {
+            display: inline-block;
+            width: 80px;
+            font-weight: bold;
+            color: #34495e;
+        }
+        input {
+            padding: 8px 12px;
+            width: 200px;
+            border: 1px solid #ddd;
+            border-radius: 6px;
+            font-size: 1em;
+        }
+        .btn-group {
+            margin: 20px 0;
+            text-align: center;
+        }
+        button {
+            padding: 10px 25px;
+            margin: 0 10px;
+            border: none;
+            border-radius: 8px;
+            font-size: 1em;
+            cursor: pointer;
+            font-weight: bold;
+        }
+        .btn-calc {
+            background-color: #3498db;
+            color: white;
+        }
+        .btn-reset {
+            background-color: #e74c3c;
+            color: white;
+        }
+        .result-box {
+            background: #e8f4f8;
+            padding: 20px;
+            border-radius: 8px;
+            margin-top: 25px;
+            display: none;
+        }
+        .result-title {
+            font-weight: bold;
+            color: #2c3e50;
+            margin-bottom: 15px;
+            font-size: 1.2em;
+        }
+        .result-item {
+            margin: 10px 0;
+            font-size: 1.1em;
+            color: #34495e;
+        }
+        .formula {
+            color: #e74c3c;
+            font-weight: bold;
+            margin: 8px 0;
+        }
+        .cube-box {
+            width: 200px;
+            height: 200px;
+            border: 2px solid #2c3e50;
+            margin: 20px auto;
+            position: relative;
+            transform: rotateX(30deg) rotateY(45deg);
+        }
+        .label {
+            position: absolute;
+            font-weight: bold;
+        }
+        .label-a { bottom: -25px; left: 50%; transform: translateX(-50%); }
+        .label-b { right: -25px; top: 50%; transform: translateY(-50%); }
+        .label-h { left: -25px; top: 50%; transform: translateY(-50%); }
+        .signature {
+            text-align: right;
+            margin-top: 30px;
+            color: #7f8c8d;
+            font-style: italic;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>江曦月的长方体表面积与体积计算器</h1>
+
+        <div class="step-box">
+            <div class="step-title">一、设定参数：长为a，宽为b，高为h</div>
+            <div class="cube-box">
+                <div class="label label-a">a</div>
+                <div class="label label-b">b</div>
+                <div class="label label-h">h</div>
+            </div>
+        </div>
+
+        <div class="step-box">
+            <div class="step-title">二、计算逻辑</div>
+            <p>1. 明确计算目标：表面积 / 体积</p>
+            <p>2. 表面积公式：(a×b + a×h + b×h) × 2</p>
+            <p>3. 体积公式：a × b × h</p>
+        </div>
+
+        <div class="input-group">
+            <label for="a">长 a：</label>
+            <input type="number" id="a" placeholder="请输入长的数值" min="0" step="any">
+        </div>
+        <div class="input-group">
+            <label for="b">宽 b：</label>
+            <input type="number" id="b" placeholder="请输入宽的数值" min="0" step="any">
+        </div>
+        <div class="input-group">
+            <label for="h">高 h：</label>
+            <input type="number" id="h" placeholder="请输入高的数值" min="0" step="any">
+        </div>
+
+        <div class="btn-group">
+            <button class="btn-calc" onclick="calculate()">计算结果</button>
+            <button class="btn-reset" onclick="resetInput()">重置输入</button>
+        </div>
+
+        <div class="result-box" id="resultBox">
+            <div class="result-title">三、计算结果</div>
+            <div class="result-item">
+                <div class="formula">表面积公式：(a×b + a×h + b×h) × 2</div>
+                <p>它的表面积是：<span id="surfaceResult"></span></p>
+            </div>
+            <div class="result-item">
+                <div class="formula">体积公式：a × b × h</div>
+                <p>它的体积是：<span id="volumeResult"></span></p>
+            </div>
+        </div>
+
+        <div class="signature">江曦月 专属</div>
+    </div>
+
+    <script>
+        function calculate() {
+            const a = parseFloat(document.getElementById('a').value);
+            const b = parseFloat(document.getElementById('b').value);
+            const h = parseFloat(document.getElementById('h').value);
+
+            if (isNaN(a) || isNaN(b) || isNaN(h) || a < 0 || b < 0 || h < 0) {
+                alert("请输入有效的非负数字！");
+                return;
+            }
+
+            const surface = (a*b + a*h + b*h) * 2;
+            const volume = a * b * h;
+
+            document.getElementById('surfaceResult').textContent = surface.toFixed(2);
+            document.getElementById('volumeResult').textContent = volume.toFixed(2);
+            document.getElementById('resultBox').style.display = 'block';
+        }
+
+        function resetInput() {
+            document.getElementById('a').value = '';
+            document.getElementById('b').value = '';
+            document.getElementById('h').value = '';
+            document.getElementById('resultBox').style.display = 'none';
+        }
+    </script>
+</body>
+</html>
