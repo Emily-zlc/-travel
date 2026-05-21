@@ -1,0 +1,416 @@
+<!DOCTYPE html>
+<html lang="zh">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>生活百分比计算器 · 折扣直接输入折数</title>
+    <style>
+        /* 核心背景优化：动态渐变 */
+        body {
+            margin: 0;
+            font-family: "PingFang SC", "Microsoft YaHei", Arial, sans-serif;
+            background: linear-gradient(-45deg, #ee7752, #e73c7e, #23a6d5, #23d5ab);
+            background-size: 400% 400%;
+            animation: gradient 15s ease infinite;
+            min-height: 100vh;
+            display: flex;
+            flex-direction: column;
+        }
+
+        /* 渐变动画 */
+        @keyframes gradient {
+            0% { background-position: 0% 50%; }
+            50% { background-position: 100% 50%; }
+            100% { background-position: 0% 50%; }
+        }
+
+        /* 顶部：半透明玻璃感 */
+        .header {
+            background: rgba(11, 26, 58, 0.8);
+            backdrop-filter: blur(10px);
+            -webkit-backdrop-filter: blur(10px);
+            color: white;
+            padding: 40px 20px;
+            text-align: center;
+            border-radius: 0 0 30px 30px;
+            box-shadow: 0 4px 30px rgba(0, 0, 0, 0.1);
+        }
+
+        .header h1 {
+            margin: 0;
+            font-size: 26px;
+            letter-spacing: 1px;
+            text-shadow: 0 2px 4px rgba(0,0,0,0.3);
+        }
+
+        /* 主卡片：增强悬浮感 */
+        .container {
+            max-width: 420px;
+            width: 90%;
+            margin: -30px auto 40px;
+            background: rgba(255, 255, 255, 0.95);
+            border-radius: 24px;
+            padding: 30px 25px;
+            box-shadow: 0 20px 40px rgba(0,0,0,0.2);
+            backdrop-filter: blur(5px);
+            box-sizing: border-box;
+        }
+
+        /* Tab 样式美化 */
+        .tabs {
+            display: flex;
+            gap: 8px;
+            margin-bottom: 25px;
+            background: #f0f2f5;
+            padding: 6px;
+            border-radius: 14px;
+        }
+
+        .tab {
+            flex: 1;
+            text-align: center;
+            padding: 12px 5px;
+            cursor: pointer;
+            border-radius: 10px;
+            font-size: 14px;
+            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+            color: #666;
+            user-select: none;
+        }
+
+        .tab.active {
+            background: white;
+            font-weight: bold;
+            color: #0d6efd;
+            box-shadow: 0 4px 12px rgba(0,0,0,0.08);
+        }
+
+        /* 输入框聚焦效果 */
+        .input-group {
+            margin-bottom: 15px;
+        }
+
+        input {
+            width: 100%;
+            box-sizing: border-box;
+            padding: 15px;
+            border-radius: 12px;
+            border: 2px solid #eee;
+            font-size: 16px;
+            transition: all 0.3s;
+            outline: none;
+            background: #fdfdfd;
+        }
+
+        input:focus {
+            border-color: #0d6efd;
+            background: #fff;
+            box-shadow: 0 0 0 4px rgba(13, 110, 253, 0.1);
+        }
+
+        /* 按钮美化 */
+        button {
+            width: 100%;
+            padding: 15px;
+            margin-top: 15px;
+            border: none;
+            border-radius: 12px;
+            background: linear-gradient(135deg, #0d6efd, #0052cc);
+            color: white;
+            font-size: 16px;
+            font-weight: bold;
+            cursor: pointer;
+            transition: transform 0.1s, box-shadow 0.3s;
+            box-shadow: 0 4px 15px rgba(13, 110, 253, 0.3);
+        }
+
+        button:hover {
+            box-shadow: 0 6px 20px rgba(13, 110, 253, 0.4);
+        }
+
+        button:active {
+            transform: scale(0.97);
+        }
+
+        button.reset {
+            background: #f8f9fa;
+            color: #666;
+            margin-top: 10px;
+            border: 1px solid #ddd;
+            box-shadow: none;
+        }
+
+        /* 结果卡片 */
+        .result {
+            margin-top: 25px;
+            padding: 20px;
+            border-left: 5px solid #0d6efd;
+            background: #f0f7ff;
+            border-radius: 15px;
+        }
+
+        .big {
+            font-size: 28px;
+            font-weight: bold;
+            color: #0d2b6b;
+            margin: 5px 0;
+        }
+
+        #formula {
+            color: #6c757d;
+            font-size: 13px;
+        }
+
+        /* 小票样式：虚线锯齿感 */
+        .ticket {
+            margin-top: 25px;
+            background: #fff9e6;
+            padding: 20px;
+            border-radius: 15px;
+            font-family: "Consolas", "Monaco", monospace;
+            font-size: 14px;
+            border-top: 2px dashed #e6d5a1;
+            color: #5d4037;
+            line-height: 1.6;
+        }
+
+        .ticket-header {
+            text-align: center;
+            font-weight: bold;
+            margin-bottom: 12px;
+            color: #8d6e63;
+            letter-spacing: 2px;
+            border-bottom: 1px solid rgba(0,0,0,0.05);
+            padding-bottom: 8px;
+        }
+        
+        /* 折扣提示小标签 */
+        .discount-hint {
+            font-size: 11px;
+            color: #e67e22;
+            margin-top: 4px;
+            text-align: left;
+            padding-left: 5px;
+        }
+    </style>
+</head>
+<body>
+
+<div class="header">
+    <h1>📱 生活百分比计算器</h1>
+</div>
+
+<div class="container">
+    <!-- Tabs -->
+    <div class="tabs">
+        <div class="tab active" onclick="switchTab('discount', this)">折扣</div>
+        <div class="tab" onclick="switchTab('tip', this)">小费</div>
+        <div class="tab" onclick="switchTab('tax', this)">税率</div>
+        <div class="tab" onclick="switchTab('increase', this)">涨幅</div>
+    </div>
+
+    <!-- 输入区域 -->
+    <div class="input-group">
+        <input type="number" id="price" placeholder="初始金额（元）" oninput="calculate()" step="any">
+    </div>
+    <div class="input-group">
+        <input type="number" id="percent" placeholder="百分比（%）" oninput="calculate()" step="any">
+        <div id="discountHint" class="discount-hint"></div>
+    </div>
+
+    <button onclick="calculate()">立即计算</button>
+    <button class="reset" onclick="resetAll()">重置全部</button>
+
+    <!-- 结果卡片 -->
+    <div class="result">
+        <div style="font-size: 14px; color: #555;">计算结果</div>
+        <div class="big" id="result">— 元</div>
+        <div id="formula">请输入数值开始计算</div>
+    </div>
+
+    <!-- 小票区域 -->
+    <div class="ticket" id="ticket">
+        <div class="ticket-header">RECEIPT</div>
+        <div id="ticket-content" style="text-align: center; color: #999;">等待输入数据...</div>
+    </div>
+</div>
+
+<script>
+let currentType = "discount";
+
+// 存储各模式下的默认示例值（用户友好）
+const defaultExamples = {
+    discount: { price: 100, percent: 8 },   // 8折（100元打8折 = 80元）
+    tip: { price: 200, percent: 15 },
+    tax: { price: 100, percent: 13 },
+    increase: { price: 80, percent: 25 }
+};
+
+function switchTab(type, element) {
+    currentType = type;
+    // 更新 UI 状态
+    document.querySelectorAll(".tab").forEach(t => t.classList.remove("active"));
+    element.classList.add("active");
+    
+    // 更改占位符、提示信息
+    const priceInput = document.getElementById("price");
+    const percentInput = document.getElementById("percent");
+    const discountHint = document.getElementById("discountHint");
+    
+    if(type === 'tip') {
+        priceInput.placeholder = "账单金额（元）";
+        percentInput.placeholder = "小费比例（%）";
+        discountHint.innerText = "";
+        percentInput.min = 0;
+        percentInput.max = 100;
+    } else if(type === 'tax') {
+        priceInput.placeholder = "税前价格（元）";
+        percentInput.placeholder = "税率（%）";
+        discountHint.innerText = "";
+        percentInput.min = 0;
+        percentInput.max = 100;
+    } else if(type === 'increase') {
+        priceInput.placeholder = "初始金额（元）";
+        percentInput.placeholder = "涨幅（%）";
+        discountHint.innerText = "";
+        percentInput.min = 0;
+        percentInput.max = 500;
+    } else { // discount 折扣模式
+        priceInput.placeholder = "原价（元）";
+        percentInput.placeholder = "折扣（例：8=八折）";
+        discountHint.innerText = "💡 输入数字代表打折，如8表示八折（原价×0.8），范围0~10";
+        percentInput.min = 0;
+        percentInput.max = 10;
+        percentInput.step = 0.1;
+    }
+    
+    // 如果当前输入框为空，则填入该模式的默认示例值（增强用户体验）
+    const currentPrice = priceInput.value.trim();
+    const currentPercent = percentInput.value.trim();
+    const defaultExample = defaultExamples[type];
+    if (defaultExample) {
+        if (currentPrice === "") {
+            priceInput.value = defaultExample.price;
+        }
+        if (currentPercent === "") {
+            percentInput.value = defaultExample.percent;
+        }
+    }
+    
+    calculate();
+}
+
+function calculate() {
+    const p = parseFloat(document.getElementById("price").value);
+    const per = parseFloat(document.getElementById("percent").value);
+    const resultElement = document.getElementById("result");
+    const formulaElement = document.getElementById("formula");
+    const ticketContent = document.getElementById("ticket-content");
+
+    if (isNaN(p) || isNaN(per)) {
+        return;
+    }
+    
+    // 边界检查（仅提示，不阻断计算，但范围外可限制）
+    if (currentType === "discount") {
+        if (per < 0 || per > 10) {
+            // 超出合理范围时提示但不强制修改，仍计算
+            const hint = document.getElementById("discountHint");
+            hint.innerText = "⚠️ 折扣建议在0~10之间（如8=八折）";
+            setTimeout(() => {
+                if (document.getElementById("discountHint").innerText.includes("⚠️")) 
+                    document.getElementById("discountHint").innerText = "💡 输入数字代表打折，如8表示八折（原价×0.8），范围0~10";
+            }, 2000);
+        }
+    }
+
+    let result = 0;
+    let formulaText = "";
+    let ticketHtml = "";
+    let discountRate = 0; // 用于显示
+
+    switch (currentType) {
+        case "discount":
+            // 输入的数字直接就是折扣数（如8代表八折，即乘以0.8）
+            discountRate = per / 10;
+            result = p * discountRate;
+            formulaText = `最终价 = 原价 × (折扣/10) = ${p} × ${discountRate.toFixed(2)}`;
+            ticketHtml = `
+                <div style="display:flex; justify-content:space-between"><span>原价:</span> <span>￥${p.toFixed(2)}</span></div>
+                <div style="display:flex; justify-content:space-between"><span>折扣:</span> <span>${per}折 (${(discountRate*100).toFixed(0)}%)</span></div>
+                <div style="margin: 10px 0; border-top: 1px dashed #ccc;"></div>
+                <div style="display:flex; justify-content:space-between; font-weight:bold;"><span>应付:</span> <span>￥${result.toFixed(2)}</span></div>
+                <div style="display:flex; justify-content:space-between; color: #e73c7e; font-size:12px;"><span>共节省:</span> <span>￥${(p - result).toFixed(2)}</span></div>
+            `;
+            break;
+        case "tip":
+            let tip = p * (per / 100);
+            result = p + tip;
+            formulaText = "总价 = 账单金额 + 小费";
+            ticketHtml = `
+                <div style="display:flex; justify-content:space-between"><span>账单金额:</span> <span>￥${p.toFixed(2)}</span></div>
+                <div style="display:flex; justify-content:space-between"><span>小费金额:</span> <span>￥${tip.toFixed(2)}</span></div>
+                <div style="margin: 10px 0; border-top: 1px dashed #ccc;"></div>
+                <div style="display:flex; justify-content:space-between; font-weight:bold;"><span>总计支付:</span> <span>￥${result.toFixed(2)}</span></div>
+            `;
+            break;
+        case "tax":
+            let tax = p * (per / 100);
+            result = p + tax;
+            formulaText = "含税价 = 税前价 × (1 + 税率%)";
+            ticketHtml = `
+                <div style="display:flex; justify-content:space-between"><span>税前原价:</span> <span>￥${p.toFixed(2)}</span></div>
+                <div style="display:flex; justify-content:space-between"><span>税额 (${per}%):</span> <span>￥${tax.toFixed(2)}</span></div>
+                <div style="margin: 10px 0; border-top: 1px dashed #ccc;"></div>
+                <div style="display:flex; justify-content:space-between; font-weight:bold;"><span>含税总额:</span> <span>￥${result.toFixed(2)}</span></div>
+            `;
+            break;
+        case "increase":
+            result = p * (1 + per / 100);
+            formulaText = "涨后价 = 原价 × (1 + 涨幅%)";
+            ticketHtml = `
+                <div style="display:flex; justify-content:space-between"><span>初始价格:</span> <span>￥${p.toFixed(2)}</span></div>
+                <div style="display:flex; justify-content:space-between"><span>增长幅度:</span> <span>+${per}%</span></div>
+                <div style="margin: 10px 0; border-top: 1px dashed #ccc;"></div>
+                <div style="display:flex; justify-content:space-between; font-weight:bold;"><span>调整后价格:</span> <span>￥${result.toFixed(2)}</span></div>
+            `;
+            break;
+    }
+
+    resultElement.innerText = result.toFixed(2) + " 元";
+    formulaElement.innerText = formulaText;
+    ticketContent.innerHTML = ticketHtml;
+}
+
+function resetAll() {
+    document.getElementById("price").value = "";
+    document.getElementById("percent").value = "";
+    // 重置后根据当前模式填入默认示例（让用户看到典型例子，而不是空值）
+    const defaultExample = defaultExamples[currentType];
+    if (defaultExample) {
+        document.getElementById("price").value = defaultExample.price;
+        document.getElementById("percent").value = defaultExample.percent;
+    }
+    // 重置提示文字
+    if (currentType === "discount") {
+        document.getElementById("discountHint").innerText = "💡 输入数字代表打折，如8表示八折（原价×0.8），范围0~10";
+    } else {
+        document.getElementById("discountHint").innerText = "";
+    }
+    calculate();
+}
+
+// 页面初始化：折扣模式，示例为8折
+window.addEventListener('DOMContentLoaded', () => {
+    const priceInput = document.getElementById("price");
+    const percentInput = document.getElementById("percent");
+    if (currentType === "discount") {
+        priceInput.value = defaultExamples.discount.price;
+        percentInput.value = defaultExamples.discount.percent;
+        document.getElementById("discountHint").innerText = "💡 输入数字代表打折，如8表示八折（原价×0.8），范围0~10";
+    }
+    calculate();
+});
+</script>
+</body>
+</html>
