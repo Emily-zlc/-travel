@@ -1,0 +1,1193 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>抽屉原理（鸽巢原理）- 可视化演示工具</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: "Microsoft YaHei", "PingFang SC", sans-serif;
+        }
+
+        body {
+            background: linear-gradient(135deg, #fdf6e3 0%, #f0e6d3 30%, #e8dcc8 60%, #f5efe0 100%);
+            min-height: 100vh;
+            padding: 20px;
+            background-attachment: fixed;
+        }
+
+        .container {
+            max-width: 1050px;
+            margin: 0 auto;
+            background: #fffef9;
+            border-radius: 16px;
+            padding: 30px 28px;
+            box-shadow: 0 8px 32px rgba(0, 0, 0, 0.10), 0 2px 8px rgba(0, 0, 0, 0.06);
+            border: 1px solid #e5d9c8;
+        }
+
+        h1 {
+            text-align: center;
+            color: #4a3728;
+            margin-bottom: 6px;
+            font-size: 28px;
+            letter-spacing: 1px;
+        }
+        h1 .icon {
+            display: inline-block;
+            font-size: 32px;
+            margin-right: 4px;
+            animation: bounceIcon 1.5s ease-in-out infinite;
+        }
+        @keyframes bounceIcon {
+            0%,
+            100% {
+                transform: translateY(0);
+            }
+            30% {
+                transform: translateY(-14px);
+            }
+            50% {
+                transform: translateY(0);
+            }
+            70% {
+                transform: translateY(-7px);
+            }
+            85% {
+                transform: translateY(0);
+            }
+        }
+
+        .subtitle {
+            text-align: center;
+            color: #8c7b6b;
+            margin-bottom: 26px;
+            font-size: 15px;
+            letter-spacing: 0.5px;
+        }
+
+        /* ========== 动画演示区 ========== */
+        .animation-area {
+            width: 100%;
+            height: 340px;
+            background: linear-gradient(to bottom,
+                    #e8f4f8 0%, #dceef5 15%,
+                    #f5f0e8 15%, #ede3d3 100%);
+            border-radius: 12px;
+            position: relative;
+            overflow: hidden;
+            margin-bottom: 28px;
+            border: 2px solid #d9ccb8;
+            box-shadow: inset 0 2px 10px rgba(0, 0, 0, 0.04);
+        }
+
+        /* 桌面/台面 */
+        .table-surface {
+            position: absolute;
+            bottom: 0;
+            left: 0;
+            width: 100%;
+            height: 78%;
+            background: linear-gradient(to bottom,
+                    #faf5ec 0%, #f0e6d6 8%,
+                    #e8d9c3 30%, #ddc9a8 100%);
+            border-top: 3px solid #c4a882;
+            border-radius: 0 0 10px 10px;
+        }
+        .table-surface::before {
+            content: "";
+            position: absolute;
+            top: 0;
+            left: 5%;
+            width: 90%;
+            height: 2px;
+            background: #d4bf9a;
+            border-radius: 50%;
+            opacity: 0.6;
+        }
+
+        /* 抽屉容器 */
+        .drawers-container {
+            position: absolute;
+            bottom: 18px;
+            left: 20px;
+            right: 20px;
+            display: flex;
+            justify-content: center;
+            align-items: flex-end;
+            gap: 10px;
+            z-index: 2;
+            flex-wrap: wrap;
+        }
+
+        /* 单个抽屉 */
+        .drawer-wrapper {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 4px;
+            transition: all 0.4s ease;
+        }
+        .drawer-wrapper.highlight .drawer-box {
+            border-color: #e8a020 !important;
+            box-shadow:
+                0 0 18px 4px rgba(255, 180, 40, 0.55),
+                0 0 40px 8px rgba(255, 160, 20, 0.30),
+                0 4px 14px rgba(0, 0, 0, 0.18) !important;
+            animation: glowPulse 0.8s ease-in-out infinite;
+        }
+        @keyframes glowPulse {
+            0%,
+            100% {
+                box-shadow: 0 0 18px 4px rgba(255, 180, 40, 0.55), 0 0 40px 8px rgba(255, 160, 20, 0.30), 0 4px 14px rgba(0, 0, 0, 0.18);
+            }
+            50% {
+                box-shadow: 0 0 26px 8px rgba(255, 200, 50, 0.75), 0 0 55px 14px rgba(255, 170, 30, 0.45), 0 4px 16px rgba(0, 0, 0, 0.22);
+            }
+        }
+        .drawer-wrapper.highlight .drawer-label-count {
+            color: #c77d10;
+            font-weight: 900;
+            transform: scale(1.08);
+        }
+
+        .drawer-box {
+            width: 90px;
+            height: 115px;
+            background: linear-gradient(to bottom,
+                    #fefcf7 0%, #faf3e6 8%,
+                    #f5e8d5 25%, #ebd5b5 60%,
+                    #d4b896 95%, #c4a47a 100%);
+            border: 3px solid #b8956c;
+            border-top: 7px solid #a07848;
+            border-radius: 4px 4px 10px 10px;
+            position: relative;
+            overflow: visible;
+            display: flex;
+            flex-wrap: wrap;
+            align-items: flex-start;
+            align-content: flex-start;
+            justify-content: center;
+            gap: 5px;
+            padding: 10px 6px 8px;
+            transition: all 0.4s ease;
+            box-shadow:
+                0 3px 8px rgba(0, 0, 0, 0.10),
+                inset 0 1px 0 rgba(255, 255, 255, 0.5);
+            cursor: default;
+            min-width: 56px;
+        }
+        .drawer-box::after {
+            content: "";
+            position: absolute;
+            top: -7px;
+            left: 8px;
+            right: 8px;
+            height: 7px;
+            background: linear-gradient(to bottom, #c49a6c, #b08050);
+            border-radius: 3px 3px 0 0;
+            opacity: 0.7;
+        }
+        .drawer-box .front-label {
+            position: absolute;
+            bottom: -26px;
+            left: 50%;
+            transform: translateX(-50%);
+            font-size: 11px;
+            color: #8c7358;
+            font-weight: 600;
+            white-space: nowrap;
+            letter-spacing: 0.5px;
+        }
+
+        /* 抽屉编号标签 */
+        .drawer-label-count {
+            font-size: 13px;
+            font-weight: 700;
+            color: #6b4e30;
+            transition: all 0.3s ease;
+            letter-spacing: 0.5px;
+        }
+
+        /* 物品小球 */
+        .item-ball {
+            width: 26px;
+            height: 26px;
+            border-radius: 50%;
+            background: radial-gradient(circle at 35% 30%, #ff8c78 0%, #e85d4a 40%, #c0392b 80%, #8b1a10 100%);
+            box-shadow:
+                0 2px 5px rgba(0, 0, 0, 0.22),
+                inset 0 -2px 3px rgba(0, 0, 0, 0.25),
+                0 0 6px rgba(200, 60, 30, 0.3);
+            flex-shrink: 0;
+            animation: dropBounce 0.45s cubic-bezier(0.22, 0.61, 0.36, 1) forwards;
+            position: relative;
+        }
+        .item-ball::after {
+            content: "";
+            position: absolute;
+            top: 5px;
+            left: 7px;
+            width: 8px;
+            height: 5px;
+            background: rgba(255, 255, 255, 0.55);
+            border-radius: 50%;
+            transform: rotate(-20deg);
+        }
+
+        @keyframes dropBounce {
+            0% {
+                transform: translateY(-160px) scale(0.4);
+                opacity: 0;
+            }
+            55% {
+                transform: translateY(2px) scale(1.08);
+                opacity: 1;
+            }
+            70% {
+                transform: translateY(-6px) scale(0.95);
+            }
+            85% {
+                transform: translateY(2px) scale(1.02);
+            }
+            95% {
+                transform: translateY(-2px) scale(0.99);
+            }
+            100% {
+                transform: translateY(0) scale(1);
+                opacity: 1;
+            }
+        }
+
+        /* 飞行中的小球 */
+        .flying-ball {
+            position: absolute;
+            width: 28px;
+            height: 28px;
+            border-radius: 50%;
+            background: radial-gradient(circle at 35% 30%, #ffb098 0%, #f07050 40%, #d04030 80%, #9b1a10 100%);
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.30), 0 0 16px rgba(240, 100, 50, 0.5);
+            z-index: 10;
+            pointer-events: none;
+            transition: left 0.55s cubic-bezier(0.25, 0.1, 0.25, 1),
+                top 0.50s cubic-bezier(0.34, 1.56, 0.64, 1),
+                opacity 0.25s ease;
+            opacity: 0;
+        }
+        .flying-ball.visible {
+            opacity: 1;
+        }
+        .flying-ball::after {
+            content: "";
+            position: absolute;
+            top: 6px;
+            left: 9px;
+            width: 9px;
+            height: 5px;
+            background: rgba(255, 255, 255, 0.55);
+            border-radius: 50%;
+            transform: rotate(-20deg);
+        }
+
+        /* 物品计数提示浮标 */
+        .count-badge {
+            position: absolute;
+            top: -32px;
+            left: 50%;
+            transform: translateX(-50%);
+            background: #e85d4a;
+            color: #fff;
+            font-weight: 700;
+            font-size: 13px;
+            padding: 3px 9px;
+            border-radius: 12px;
+            white-space: nowrap;
+            opacity: 0;
+            transition: opacity 0.3s ease, top 0.3s ease;
+            pointer-events: none;
+            z-index: 5;
+            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.2);
+        }
+        .count-badge.show {
+            opacity: 1;
+            top: -38px;
+        }
+
+        /* 提示信息 */
+        .insight-tip {
+            position: absolute;
+            top: 14px;
+            left: 50%;
+            transform: translateX(-50%);
+            background: rgba(255, 255, 255, 0.9);
+            color: #5a3e28;
+            font-weight: 700;
+            font-size: 14px;
+            padding: 6px 16px;
+            border-radius: 20px;
+            z-index: 6;
+            white-space: nowrap;
+            letter-spacing: 0.5px;
+            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
+            border: 1px solid #e0d3bc;
+            transition: all 0.4s ease;
+            opacity: 0;
+        }
+        .insight-tip.visible {
+            opacity: 1;
+        }
+        .insight-tip.warning {
+            background: #fff8e7;
+            color: #b85c10;
+            border-color: #f0c060;
+            animation: pulseTip 1.5s ease-in-out infinite;
+        }
+        @keyframes pulseTip {
+            0%,
+            100% {
+                box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
+            }
+            50% {
+                box-shadow: 0 4px 18px rgba(200, 130, 30, 0.35);
+            }
+        }
+
+        /* ========== 控制面板 ========== */
+        .control-panel {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 16px;
+            margin-bottom: 26px;
+            align-items: end;
+        }
+
+        .input-group {
+            display: flex;
+            flex-direction: column;
+            gap: 6px;
+        }
+        .input-group label {
+            font-weight: 700;
+            color: #4a3728;
+            font-size: 14px;
+            letter-spacing: 0.4px;
+        }
+        .input-group input {
+            padding: 11px 14px;
+            border: 2px solid #d4bfa0;
+            border-radius: 8px;
+            font-size: 16px;
+            outline: none;
+            background: #fffef9;
+            transition: all 0.25s ease;
+            color: #3e2d1c;
+            font-weight: 500;
+        }
+        .input-group input:focus {
+            border-color: #c8965c;
+            box-shadow: 0 0 0 4px rgba(200, 140, 70, 0.10);
+            background: #fff;
+        }
+        .input-group input:hover {
+            border-color: #c8a078;
+        }
+
+        .btn-row {
+            display: flex;
+            gap: 10px;
+            align-items: end;
+        }
+        button {
+            padding: 12px 22px;
+            background: linear-gradient(135deg, #e8a040, #d07828);
+            color: #fff;
+            border: none;
+            border-radius: 8px;
+            font-size: 15px;
+            font-weight: 700;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            letter-spacing: 0.5px;
+            box-shadow: 0 3px 10px rgba(180, 100, 30, 0.30);
+            white-space: nowrap;
+        }
+        button:hover {
+            background: linear-gradient(135deg, #f0b858, #e09038);
+            box-shadow: 0 5px 16px rgba(180, 100, 30, 0.40);
+            transform: translateY(-1px);
+        }
+        button:active {
+            transform: translateY(1px);
+            box-shadow: 0 2px 6px rgba(180, 100, 30, 0.30);
+        }
+        button.secondary {
+            background: linear-gradient(135deg, #b8a590, #9b8570);
+            box-shadow: 0 3px 10px rgba(120, 100, 70, 0.25);
+        }
+        button.secondary:hover {
+            background: linear-gradient(135deg, #c8b8a0, #a89078);
+            box-shadow: 0 5px 16px rgba(120, 100, 70, 0.35);
+        }
+
+        /* ========== 结果区域 ========== */
+        .result-area {
+            background: #fefcf8;
+            padding: 20px 22px;
+            border-radius: 10px;
+            margin-bottom: 20px;
+            border: 1px solid #e5d9c8;
+            display: flex;
+            flex-wrap: wrap;
+            gap: 16px;
+            align-items: center;
+            justify-content: space-between;
+        }
+        .result-title {
+            font-size: 17px;
+            font-weight: 700;
+            color: #4a3728;
+            letter-spacing: 0.5px;
+            white-space: nowrap;
+        }
+        .result-items {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 16px;
+        }
+        .result-item {
+            font-size: 15px;
+            color: #5a4030;
+            background: #fdf5ea;
+            padding: 8px 14px;
+            border-radius: 20px;
+            font-weight: 500;
+            white-space: nowrap;
+            border: 1px solid #e8d5b8;
+            letter-spacing: 0.3px;
+        }
+        .result-item strong {
+            color: #c05520;
+            font-weight: 800;
+            font-size: 17px;
+        }
+        .result-item.highlight-result {
+            background: #fff3e0;
+            border-color: #f0b860;
+            animation: highlightFade 0.7s ease-in-out;
+        }
+        @keyframes highlightFade {
+            0% {
+                background: #ffe0b0;
+                transform: scale(1.04);
+            }
+            100% {
+                background: #fff3e0;
+                transform: scale(1);
+            }
+        }
+
+        /* ========== 分布详情 ========== */
+        .distribution-bar {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            flex-wrap: wrap;
+            margin-top: 6px;
+            width: 100%;
+        }
+        .distribution-bar .dist-label {
+            font-size: 13px;
+            color: #7a6852;
+            font-weight: 600;
+        }
+        .dist-chip {
+            display: inline-flex;
+            align-items: center;
+            gap: 4px;
+            background: #f5ede0;
+            border: 1px solid #dcc8a8;
+            border-radius: 14px;
+            padding: 4px 10px;
+            font-size: 12px;
+            font-weight: 600;
+            color: #5a3e28;
+            letter-spacing: 0.3px;
+        }
+        .dist-chip .dot {
+            width: 10px;
+            height: 10px;
+            border-radius: 50%;
+            background: #d07840;
+            display: inline-block;
+        }
+
+        /* ========== 公式区域 ========== */
+        .formula-area {
+            background: linear-gradient(135deg, #fffef7, #fff9e6);
+            padding: 20px 22px;
+            border-radius: 10px;
+            border: 2px solid #f0d890;
+            box-shadow: 0 2px 8px rgba(180, 140, 50, 0.08);
+        }
+        .formula-title {
+            font-weight: 700;
+            margin-bottom: 10px;
+            color: #b87020;
+            font-size: 17px;
+            letter-spacing: 0.5px;
+        }
+        .formula {
+            font-size: 15px;
+            line-height: 1.9;
+            color: #4a3728;
+            letter-spacing: 0.3px;
+        }
+        .formula .hl {
+            color: #c05520;
+            font-weight: 700;
+        }
+        .formula .math {
+            display: inline-block;
+            background: #fffdf5;
+            border: 1px solid #e8d5a0;
+            border-radius: 5px;
+            padding: 2px 8px;
+            margin: 1px 3px;
+            font-family: "Georgia", "Times New Roman", serif;
+            font-style: italic;
+            letter-spacing: 1px;
+        }
+
+        /* ========== 响应式 ========== */
+        @media (max-width: 768px) {
+            .container {
+                padding: 18px 12px;
+            }
+            h1 {
+                font-size: 22px;
+            }
+            .animation-area {
+                height: 280px;
+            }
+            .drawer-box {
+                width: 60px;
+                height: 90px;
+                padding: 7px 4px 6px;
+                gap: 3px;
+                border-top-width: 5px;
+            }
+            .drawer-box::after {
+                top: -5px;
+                height: 5px;
+                left: 5px;
+                right: 5px;
+            }
+            .item-ball {
+                width: 20px;
+                height: 20px;
+            }
+            .drawers-container {
+                gap: 5px;
+                left: 8px;
+                right: 8px;
+                bottom: 10px;
+            }
+            .control-panel {
+                grid-template-columns: 1fr 1fr;
+                gap: 10px;
+            }
+            button {
+                padding: 10px 14px;
+                font-size: 13px;
+            }
+            .result-area {
+                flex-direction: column;
+                align-items: flex-start;
+                gap: 10px;
+            }
+            .formula {
+                font-size: 13px;
+                line-height: 1.7;
+            }
+        }
+        @media (max-width: 420px) {
+            .animation-area {
+                height: 240px;
+            }
+            .drawer-box {
+                width: 44px;
+                height: 70px;
+                padding: 5px 2px 4px;
+                gap: 2px;
+                border-width: 2px;
+                border-top-width: 4px;
+                border-radius: 2px 2px 6px 6px;
+            }
+            .drawer-box::after {
+                top: -4px;
+                height: 4px;
+                left: 3px;
+                right: 3px;
+            }
+            .item-ball {
+                width: 16px;
+                height: 16px;
+            }
+            .drawers-container {
+                gap: 3px;
+                left: 4px;
+                right: 4px;
+                bottom: 6px;
+            }
+            .drawer-label-count {
+                font-size: 10px;
+            }
+            .control-panel {
+                grid-template-columns: 1fr;
+                gap: 8px;
+            }
+            .btn-row {
+                flex-direction: column;
+            }
+            h1 {
+                font-size: 19px;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1><span class="icon">📦</span>抽屉原理 · 可视化演示</h1>
+        <p class="subtitle">鸽巢原理（Pigeonhole Principle）—— 动态分配 + 实时计算 + 公式速记</p>
+
+        <!-- 动画演示区 -->
+        <div class="animation-area" id="animationArea">
+            <div class="table-surface"></div>
+            <div class="insight-tip" id="insightTip"></div>
+            <div class="flying-ball" id="flyingBall"></div>
+            <div class="drawers-container" id="drawersContainer">
+                <!-- 动态生成抽屉 -->
+            </div>
+        </div>
+
+        <!-- 控制面板 -->
+        <div class="control-panel">
+            <div class="input-group">
+                <label>🎯 物品数量（苹果/小球）</label>
+                <input type="number" id="itemCount" placeholder="例如：7" value="7" min="0" max="50" step="1">
+            </div>
+            <div class="input-group">
+                <label>🗄️ 抽屉数量</label>
+                <input type="number" id="drawerCount" placeholder="例如：5" value="5" min="1" max="12" step="1">
+            </div>
+            <div class="btn-row">
+                <button onclick="startDemo()" id="btnStart">🚀 开始演示</button>
+                <button class="secondary" onclick="resetAll()">🔄 重置</button>
+            </div>
+        </div>
+
+        <!-- 计算结果 -->
+        <div class="result-area" id="resultArea">
+            <div class="result-title">📊 计算结果</div>
+            <div class="result-items">
+                <div class="result-item" id="resultMain">
+                    至少有一个抽屉至少有 <strong id="minMaxCount">0</strong> 个物品
+                </div>
+                <div class="result-item" id="resultActual" style="display:none;">
+                    实际最满抽屉有 <strong id="actualMaxCount">0</strong> 个物品
+                </div>
+            </div>
+            <div class="distribution-bar" id="distributionBar"></div>
+        </div>
+
+        <!-- 核心公式 -->
+        <div class="formula-area">
+            <div class="formula-title">📝 抽屉原理 · 核心公式</div>
+            <div class="formula">
+                <strong>经典形式：</strong>把 <span class="hl">n+1</span> 个物品放入 <span class="hl">n</span> 个抽屉，至少有一个抽屉里至少有 <span class="hl">2</span> 个物品。<br>
+                <strong>一般形式：</strong>把 <span class="hl">m</span> 个物品放入 <span class="hl">n</span> 个抽屉，<br>
+                &emsp;则至少有一个抽屉里至少有 <span class="math">⌈ m / n ⌉</span> 个物品。<br>
+                <strong>核心思想：</strong>即使<span class="hl">尽量平均分配</span>，最"满"的抽屉也必然达到这个数量。<br>
+                <strong>公式：</strong>至少最大数 = <span class="math">⌈m ÷ n⌉</span>（向上取整）
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // 获取DOM元素
+        const animationArea = document.getElementById('animationArea');
+        const drawersContainer = document.getElementById('drawersContainer');
+        const flyingBall = document.getElementById('flyingBall');
+        const insightTip = document.getElementById('insightTip');
+        const itemCountInput = document.getElementById('itemCount');
+        const drawerCountInput = document.getElementById('drawerCount');
+        const resultMain = document.getElementById('resultMain');
+        const resultActual = document.getElementById('resultActual');
+        const minMaxCountEl = document.getElementById('minMaxCount');
+        const actualMaxCountEl = document.getElementById('actualMaxCount');
+        const distributionBar = document.getElementById('distributionBar');
+        const btnStart = document.getElementById('btnStart');
+
+        let isAnimating = false;
+        let animationTimeoutIds = [];
+        let currentDistribution = []; // 存储当前各抽屉物品数
+
+        // 清除所有动画定时器
+        function clearAllTimeouts() {
+            animationTimeoutIds.forEach(id => clearTimeout(id));
+            animationTimeoutIds = [];
+        }
+
+        // 获取飞行小球
+        function getFlyingBall() {
+            return flyingBall;
+        }
+
+        // 获取洞察提示
+        function getInsightTip() {
+            return insightTip;
+        }
+
+        // 重置全部
+        function resetAll() {
+            clearAllTimeouts();
+            isAnimating = false;
+            btnStart.disabled = false;
+            btnStart.textContent = '🚀 开始演示';
+            flyingBall.classList.remove('visible');
+            insightTip.classList.remove('visible', 'warning');
+            insightTip.textContent = '';
+            currentDistribution = [];
+            // 清空抽屉容器
+            drawersContainer.innerHTML = '';
+            // 重置结果
+            minMaxCountEl.textContent = '0';
+            actualMaxCountEl.textContent = '0';
+            resultMain.classList.remove('highlight-result');
+            resultActual.style.display = 'none';
+            distributionBar.innerHTML = '';
+            // 创建空抽屉预览
+            const dc = Math.max(1, Math.min(12, parseInt(drawerCountInput.value) || 5));
+            buildDrawers(dc, true);
+        }
+
+        // 构建抽屉DOM
+        function buildDrawers(count, isPreview = false) {
+            drawersContainer.innerHTML = '';
+            const validCount = Math.max(1, Math.min(12, count));
+            for (let i = 0; i < validCount; i++) {
+                const wrapper = document.createElement('div');
+                wrapper.className = 'drawer-wrapper';
+                wrapper.setAttribute('data-drawer-index', i);
+                wrapper.id = `drawerWrapper${i}`;
+
+                const box = document.createElement('div');
+                box.className = 'drawer-box';
+                box.id = `drawerBox${i}`;
+                box.setAttribute('data-drawer-index', i);
+                // 抽屉内部物品将动态添加
+
+                const label = document.createElement('span');
+                label.className = 'drawer-label-count';
+                label.id = `drawerLabel${i}`;
+                label.textContent = isPreview ? '0个' : '0个';
+
+                wrapper.appendChild(box);
+                wrapper.appendChild(label);
+                drawersContainer.appendChild(wrapper);
+            }
+            // 调整抽屉宽度
+            adjustDrawerWidths(validCount);
+        }
+
+        // 根据抽屉数量调整宽度
+        function adjustDrawerWidths(count) {
+            const boxes = drawersContainer.querySelectorAll('.drawer-box');
+            const wrappers = drawersContainer.querySelectorAll('.drawer-wrapper');
+            let baseWidth;
+            if (count <= 3) baseWidth = 130;
+            else if (count <= 5) baseWidth = 100;
+            else if (count <= 7) baseWidth = 80;
+            else if (count <= 9) baseWidth = 66;
+            else baseWidth = 54;
+
+            boxes.forEach(box => {
+                box.style.width = baseWidth + 'px';
+                box.style.minWidth = baseWidth + 'px';
+            });
+            // 球的大小也相应调整
+            const ballSize = count <= 6 ? 26 : (count <= 9 ? 22 : 18);
+            document.documentElement.style.setProperty('--ball-size', ballSize + 'px');
+        }
+
+        // 在指定抽屉中添加小球（带动画）
+        function addBallToDrawer(drawerIndex, delay = 0) {
+            const box = document.getElementById(`drawerBox${drawerIndex}`);
+            if (!box) return;
+            const ball = document.createElement('div');
+            ball.className = 'item-ball';
+            const bs = document.documentElement.style.getPropertyValue('--ball-size') || '26px';
+            ball.style.width = bs;
+            ball.style.height = bs;
+            // 随机微调动画延迟让它们看起来更自然
+            ball.style.animationDelay = (Math.random() * 0.06) + 's';
+            box.appendChild(ball);
+
+            // 更新标签
+            updateDrawerLabel(drawerIndex);
+        }
+
+        // 更新抽屉标签
+        function updateDrawerLabel(drawerIndex) {
+            const box = document.getElementById(`drawerBox${drawerIndex}`);
+            const label = document.getElementById(`drawerLabel${drawerIndex}`);
+            if (!box || !label) return;
+            const count = box.querySelectorAll('.item-ball').length;
+            label.textContent = count + '个';
+        }
+
+        // 获取各抽屉物品数
+        function getDistribution() {
+            const count = drawersContainer.querySelectorAll('.drawer-box').length;
+            const dist = [];
+            for (let i = 0; i < count; i++) {
+                const box = document.getElementById(`drawerBox${i}`);
+                dist.push(box ? box.querySelectorAll('.item-ball').length : 0);
+            }
+            return dist;
+        }
+
+        // 高亮最满的抽屉
+        function highlightMaxDrawers() {
+            const dist = getDistribution();
+            if (dist.length === 0) return;
+            const maxVal = Math.max(...dist);
+            // 先清除所有高亮
+            drawersContainer.querySelectorAll('.drawer-wrapper').forEach(w => w.classList.remove('highlight'));
+            if (maxVal === 0) return;
+            // 高亮所有达到最大值的抽屉
+            dist.forEach((val, idx) => {
+                if (val === maxVal) {
+                    const wrapper = document.getElementById(`drawerWrapper${idx}`);
+                    if (wrapper) wrapper.classList.add('highlight');
+                }
+            });
+            currentDistribution = dist;
+        }
+
+        // 清除高亮
+        function clearHighlights() {
+            drawersContainer.querySelectorAll('.drawer-wrapper').forEach(w => w.classList.remove('highlight'));
+            currentDistribution = [];
+        }
+
+        // 更新结果区域
+        function updateResults(m, n) {
+            const dist = getDistribution();
+            const maxActual = dist.length > 0 ? Math.max(...dist) : 0;
+            const minMaxTheory = n > 0 ? Math.ceil(m / n) : (m > 0 ? m : 0);
+
+            minMaxCountEl.textContent = minMaxTheory;
+            actualMaxCountEl.textContent = maxActual;
+            resultMain.classList.add('highlight-result');
+            setTimeout(() => resultMain.classList.remove('highlight-result'), 800);
+
+            if (maxActual > minMaxTheory || (maxActual === minMaxTheory && m > 0)) {
+                resultActual.style.display = 'inline-block';
+            } else if (m === 0) {
+                resultActual.style.display = 'none';
+            } else {
+                resultActual.style.display = 'inline-block';
+            }
+
+            // 分布详情
+            updateDistributionBar(dist, maxActual);
+        }
+
+        // 更新分布条
+        function updateDistributionBar(dist, maxVal) {
+            distributionBar.innerHTML = '';
+            if (dist.length === 0) return;
+            const labelSpan = document.createElement('span');
+            labelSpan.className = 'dist-label';
+            labelSpan.textContent = '各抽屉分布：';
+            distributionBar.appendChild(labelSpan);
+
+            dist.forEach((val, idx) => {
+                const chip = document.createElement('span');
+                chip.className = 'dist-chip';
+                if (val === maxVal && maxVal > 0) {
+                    chip.style.background = '#ffe8d0';
+                    chip.style.borderColor = '#f0a840';
+                    chip.style.fontWeight = '800';
+                }
+                chip.innerHTML = `<span class="dot"></span> 抽屉${idx + 1}: ${val}个`;
+                distributionBar.appendChild(chip);
+            });
+        }
+
+        // 显示洞察提示
+        function showInsight(message, isWarning = false) {
+            const tip = getInsightTip();
+            tip.textContent = message;
+            tip.classList.add('visible');
+            if (isWarning) {
+                tip.classList.add('warning');
+            } else {
+                tip.classList.remove('warning');
+            }
+            // 自动隐藏
+            const hideId = setTimeout(() => {
+                tip.classList.remove('visible', 'warning');
+            }, 4000);
+            animationTimeoutIds.push(hideId);
+        }
+
+        // 主演示函数
+        function startDemo() {
+            if (isAnimating) {
+                // 如果正在动画中，先停止
+                clearAllTimeouts();
+                isAnimating = false;
+                btnStart.disabled = false;
+                btnStart.textContent = '🚀 开始演示';
+                flyingBall.classList.remove('visible');
+                insightTip.classList.remove('visible', 'warning');
+                return;
+            }
+
+            // 读取输入
+            let m = parseInt(itemCountInput.value);
+            let n = parseInt(drawerCountInput.value);
+
+            // 验证
+            if (isNaN(m) || m < 0) m = 7;
+            if (isNaN(n) || n < 1) n = 5;
+            m = Math.min(50, Math.max(0, m));
+            n = Math.min(12, Math.max(1, n));
+
+            // 更新输入框
+            itemCountInput.value = m;
+            drawerCountInput.value = n;
+
+            // 清除状态
+            clearAllTimeouts();
+            clearHighlights();
+            flyingBall.classList.remove('visible');
+            insightTip.classList.remove('visible', 'warning');
+            insightTip.textContent = '';
+            currentDistribution = [];
+
+            // 构建抽屉
+            buildDrawers(n, false);
+            // 清空结果
+            minMaxCountEl.textContent = '0';
+            actualMaxCountEl.textContent = '0';
+            resultActual.style.display = 'none';
+            distributionBar.innerHTML = '';
+            resultMain.classList.remove('highlight-result');
+
+            // 设置动画状态
+            isAnimating = true;
+            btnStart.disabled = true;
+            btnStart.textContent = '⏳ 演示中...';
+
+            // 计算理论值
+            const minMaxTheory = Math.ceil(m / n);
+
+            // 显示提示
+            if (m === 0) {
+                showInsight('没有物品可分配，所有抽屉都是空的~', false);
+            } else if (m <= n) {
+                showInsight(`物品数(${m}) ≤ 抽屉数(${n})，可以做到每个抽屉最多1个`, false);
+            } else {
+                showInsight(`⚠️ 物品数(${m}) > 抽屉数(${n})，必然有抽屉至少含 ${minMaxTheory} 个物品！`, true);
+            }
+
+            // 获取飞行小球元素
+            const fb = getFlyingBall();
+            const areaRect = animationArea.getBoundingClientRect();
+
+            // 预计算轮询分配方案
+            const allocationPlan = [];
+            for (let i = 0; i < m; i++) {
+                allocationPlan.push(i % n);
+            }
+
+            // 逐个分配物品
+            let allocatedCount = 0;
+            const totalItems = m;
+
+            function allocateNext(index) {
+                if (index >= totalItems) {
+                    // 分配完成
+                    finishDemo(m, n, minMaxTheory);
+                    return;
+                }
+
+                const targetDrawer = allocationPlan[index];
+                const box = document.getElementById(`drawerBox${targetDrawer}`);
+                if (!box) {
+                    // 抽屉不存在，跳过
+                    allocateNext(index + 1);
+                    return;
+                }
+
+                // 计算目标抽屉在动画区域中的位置
+                const boxRect = box.getBoundingClientRect();
+                const targetX = boxRect.left + boxRect.width / 2 - 14; // 14 = 小球半径(28px/2)
+                const targetY = boxRect.top - areaRect.top - 20; // 抽屉上方
+
+                // 飞行小球起始位置（动画区域顶部中央）
+                const startX = areaRect.width / 2 - 14;
+                const startY = 10;
+
+                // 设置飞行小球起始位置
+                fb.style.left = startX + 'px';
+                fb.style.top = startY + 'px';
+                fb.style.transition = 'none';
+                fb.classList.add('visible');
+
+                // 强制回流
+                fb.offsetHeight;
+
+                // 飞向目标
+                const flyDuration = 380 + Math.random() * 120;
+                fb.style.transition =
+                    `left ${flyDuration}ms cubic-bezier(0.25, 0.1, 0.25, 1), top ${flyDuration}ms cubic-bezier(0.34, 1.2, 0.64, 1), opacity 0.2s ease`;
+                fb.style.left = targetX + 'px';
+                fb.style.top = targetY + 'px';
+
+                // 飞行结束后放入抽屉
+                const flyEndId = setTimeout(() => {
+                    fb.classList.remove('visible');
+                    fb.style.transition = 'none';
+                    // 在抽屉中添加小球（带动画）
+                    addBallToDrawer(targetDrawer, 0);
+                    allocatedCount++;
+                    // 更新实时计数提示
+                    updateLiveCount(allocatedCount, totalItems);
+                    // 继续下一个
+                    const nextId = setTimeout(() => {
+                        allocateNext(index + 1);
+                    }, 180 + Math.random() * 100);
+                    animationTimeoutIds.push(nextId);
+                }, flyDuration);
+
+                animationTimeoutIds.push(flyEndId);
+            }
+
+            function updateLiveCount(allocated, total) {
+                const tip = getInsightTip();
+                if (allocated < total) {
+                    tip.textContent = `正在分配... ${allocated}/${total} 个物品已放入抽屉`;
+                    tip.classList.add('visible');
+                    tip.classList.remove('warning');
+                }
+            }
+
+            function finishDemo(m, n, minMaxTheory) {
+                // 高亮最满抽屉
+                highlightMaxDrawers();
+                // 更新结果
+                updateResults(m, n);
+                // 显示完成提示
+                const dist = getDistribution();
+                const maxActual = Math.max(...dist, 0);
+                if (m > n && maxActual >= 2) {
+                    showInsight(
+                        `✅ 演示完成！最满的抽屉有 ${maxActual} 个物品，符合 ⌈${m}/${n}⌉ = ${minMaxTheory} 的结论`,
+                        true);
+                } else if (m > 0) {
+                    showInsight(`✅ 演示完成！⌈${m}/${n}⌉ = ${minMaxTheory}，结论成立`, false);
+                } else {
+                    showInsight('没有物品，所有抽屉为空', false);
+                }
+                // 恢复按钮
+                isAnimating = false;
+                btnStart.disabled = false;
+                btnStart.textContent = '🔄 重新演示';
+            }
+
+            // 开始分配
+            if (totalItems === 0) {
+                finishDemo(m, n, minMaxTheory);
+            } else {
+                const startId = setTimeout(() => {
+                    allocateNext(0);
+                }, 400);
+                animationTimeoutIds.push(startId);
+                // 初始提示
+                const initTipId = setTimeout(() => {
+                    if (isAnimating) {
+                        updateLiveCount(0, totalItems);
+                    }
+                }, 200);
+                animationTimeoutIds.push(initTipId);
+            }
+        }
+
+        // 窗口大小改变时更新抽屉宽度
+        function handleResize() {
+            const count = drawersContainer.querySelectorAll('.drawer-box').length;
+            if (count > 0) {
+                adjustDrawerWidths(count);
+            }
+        }
+        window.addEventListener('resize', handleResize);
+
+        // 输入框回车键触发演示
+        itemCountInput.addEventListener('keydown', function(e) {
+            if (e.key === 'Enter') startDemo();
+        });
+        drawerCountInput.addEventListener('keydown', function(e) {
+            if (e.key === 'Enter') startDemo();
+        });
+
+        // 输入框变化时实时预览空抽屉
+        function previewDrawers() {
+            if (isAnimating) return;
+            const n = Math.max(1, Math.min(12, parseInt(drawerCountInput.value) || 5));
+            buildDrawers(n, true);
+            minMaxCountEl.textContent = '0';
+            actualMaxCountEl.textContent = '0';
+            resultActual.style.display = 'none';
+            distributionBar.innerHTML = '';
+            resultMain.classList.remove('highlight-result');
+            clearHighlights();
+            insightTip.classList.remove('visible', 'warning');
+            flyingBall.classList.remove('visible');
+        }
+        drawerCountInput.addEventListener('input', function() {
+            if (!isAnimating) previewDrawers();
+        });
+        itemCountInput.addEventListener('input', function() {
+            if (!isAnimating) {
+                const m = Math.max(0, Math.min(50, parseInt(itemCountInput.value) || 0));
+                const n = Math.max(1, Math.min(12, parseInt(drawerCountInput.value) || 5));
+                minMaxCountEl.textContent = n > 0 ? Math.ceil(m / n) : 0;
+                resultActual.style.display = 'none';
+                distributionBar.innerHTML = '';
+                resultMain.classList.remove('highlight-result');
+            }
+        });
+
+        // 初始加载
+        window.onload = function() {
+            previewDrawers();
+            // 更新初始理论值
+            const m = Math.max(0, Math.min(50, parseInt(itemCountInput.value) || 7));
+            const n = Math.max(1, Math.min(12, parseInt(drawerCountInput.value) || 5));
+            minMaxCountEl.textContent = n > 0 ? Math.ceil(m / n) : 0;
+            // 自动演示一次
+            const autoStartId = setTimeout(() => {
+                startDemo();
+            }, 600);
+            animationTimeoutIds.push(autoStartId);
+        };
+    </script>
+</body>
+</html>
