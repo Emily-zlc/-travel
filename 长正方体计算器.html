@@ -1,0 +1,154 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>长方体/正方体计算器</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: "微软雅黑", sans-serif;
+        }
+        body {
+            background-color: #f0f7ff;
+            padding: 30px;
+        }
+        .wrap {
+            max-width: 480px;
+            margin: 0 auto;
+            background: #ffffff;
+            border-radius: 16px;
+            padding: 30px;
+            box-shadow: 0 4px 15px rgba(0,0,0,0.1);
+        }
+        h1 {
+            text-align: center;
+            color: #2563eb;
+            margin-bottom: 25px;
+            font-size: 24px;
+        }
+        .module {
+            margin: 25px 0;
+        }
+        h2 {
+            font-size: 18px;
+            color: #333;
+            margin-bottom: 15px;
+            padding-bottom: 8px;
+            border-bottom: 2px solid #bfdbfe;
+        }
+        .input-row {
+            margin: 12px 0;
+            display: flex;
+            align-items: center;
+        }
+        label {
+            width: 60px;
+            font-size: 16px;
+            color: #444;
+        }
+        input {
+            flex: 1;
+            padding: 10px 12px;
+            border: 1px solid #cbd5e1;
+            border-radius: 8px;
+            font-size: 16px;
+        }
+        .result-box {
+            margin-top: 18px;
+            padding: 15px;
+            background-color: #eff6ff;
+            border-radius: 8px;
+            line-height: 1.9;
+            font-size: 16px;
+        }
+        .tip {
+            color: #dc2626;
+            font-size: 14px;
+            margin: 8px 0;
+        }
+        .foot {
+            text-align: center;
+            margin-top: 20px;
+            color: #64748b;
+        }
+    </style>
+</head>
+<body>
+    <div class="wrap">
+        <h1>长方体/正方体计算器</h1>
+        <div class="module">
+            <h2>体积与表面积计算</h2>
+            <div class="input-row">
+                <label>长：</label>
+                <input type="number" id="len" value="1" step="0.1" min="0">
+            </div>
+            <div class="input-row">
+                <label>宽：</label>
+                <input type="number" id="wid" value="1" step="0.1" min="0">
+            </div>
+            <div class="input-row">
+                <label>高：</label>
+                <input type="number" id="hei" value="1" step="0.1" min="0">
+            </div>
+            <div class="result-box">
+                <div>体积：<span id="vol">1.00</span></div>
+                <div>表面积：<span id="area">6.00</span></div>
+            </div>
+        </div>
+        <div class="module">
+            <h2>带厚度容积计算</h2>
+            <div class="input-row">
+                <label>厚度：</label>
+                <input type="number" id="thick" value="0" step="0.1" min="0">
+            </div>
+            <div class="tip">提示：厚度不可超过长宽高的一半</div>
+            <div class="result-box">
+                <div>内部长：<span id="inLen">1.00</span></div>
+                <div>内部宽：<span id="inWid">1.00</span></div>
+                <div>内部高：<span id="inHei">1.00</span></div>
+                <div>容积：<span id="capacity">1.00</span></div>
+            </div>
+        </div>
+        <div class="foot">五年级专用计算器</div>
+    </div>
+    <script>
+        const len = document.getElementById('len');
+        const wid = document.getElementById('wid');
+        const hei = document.getElementById('hei');
+        const thick = document.getElementById('thick');
+        const vol = document.getElementById('vol');
+        const area = document.getElementById('area');
+        const inLen = document.getElementById('inLen');
+        const inWid = document.getElementById('inWid');
+        const inHei = document.getElementById('inHei');
+        const capacity = document.getElementById('capacity');
+        function calculate() {
+            let l = Number(len.value) || 0;
+            let w = Number(wid.value) || 0;
+            let h = Number(hei.value) || 0;
+            let t = Number(thick.value) || 0;
+            vol.innerText = (l * w * h).toFixed(2);
+            area.innerText = (2 * (l*w + w*h + l*h)).toFixed(2);
+            let il = l - 2 * t;
+            let iw = w - 2 * t;
+            let ih = h - 2 * t;
+            inLen.innerText = il.toFixed(2);
+            inWid.innerText = iw.toFixed(2);
+            inHei.innerText = ih.toFixed(2);
+            if(il <= 0 || iw <=0 || ih <=0){
+                capacity.innerText = "数值无效";
+            }else{
+                capacity.innerText = (il * iw * ih).toFixed(2);
+            }
+        }
+        len.addEventListener('input',calculate);
+        wid.addEventListener('input',calculate);
+        hei.addEventListener('input',calculate);
+        thick.addEventListener('input',calculate);
+        window.onload = calculate;
+    </script>
+</body>
+</html>
