@@ -1,0 +1,629 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes">
+    <title>分数换算推算笔记 | 小数↔分数↔百分数 互动学习</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            background: linear-gradient(145deg, #f3f1e6 0%, #e8e0cf 100%);
+            font-family: 'Segoe UI', 'Poppins', 'Noto Sans', system-ui, 'PingFang SC', 'Microsoft YaHei', sans-serif;
+            padding: 24px 20px;
+            color: #2c2b26;
+        }
+
+        /* 主容器 */
+        .notebook {
+            max-width: 1300px;
+            margin: 0 auto;
+            background: #fffef7;
+            border-radius: 48px;
+            box-shadow: 0 25px 45px rgba(0, 0, 0, 0.12), inset 0 1px 0 rgba(255, 255, 245, 0.8);
+            overflow: hidden;
+            padding: 28px 30px 40px;
+            transition: all 0.2s;
+        }
+
+        h1 {
+            display: flex;
+            justify-content: space-between;
+            align-items: flex-end;
+            flex-wrap: wrap;
+            border-bottom: 4px solid #ffb347;
+            padding-bottom: 14px;
+            margin-bottom: 20px;
+        }
+
+        .title-main {
+            font-size: 2rem;
+            background: linear-gradient(135deg, #cb6e2e, #8b5a2b);
+            -webkit-background-clip: text;
+            background-clip: text;
+            color: transparent;
+            letter-spacing: -0.5px;
+        }
+
+        .badge {
+            background: #fce6c4;
+            padding: 6px 18px;
+            border-radius: 60px;
+            font-size: 0.85rem;
+            font-weight: 600;
+            color: #aa6f30;
+        }
+
+        .sub {
+            color: #7f6139;
+            margin-bottom: 28px;
+            padding-left: 12px;
+            border-left: 5px solid #ffae62;
+            font-size: 0.95rem;
+        }
+
+        /* 网格布局：规则区 + 实时转换器 */
+        .flex-grid {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 28px;
+            margin-bottom: 40px;
+        }
+
+        .rules-area {
+            flex: 2;
+            min-width: 280px;
+        }
+
+        .converter-area {
+            flex: 1.4;
+            min-width: 280px;
+            background: #fef6e8;
+            border-radius: 36px;
+            padding: 22px 20px;
+            box-shadow: 0 8px 20px rgba(0, 0, 0, 0.05);
+            border: 1px solid #ffddb0;
+        }
+
+        /* 规则卡片 */
+        .rule-card {
+            background: #fdf8ef;
+            border-radius: 32px;
+            padding: 20px;
+            margin-bottom: 20px;
+            box-shadow: 0 5px 12px rgba(0, 0, 0, 0.03);
+            border: 1px solid #f3e5cf;
+        }
+
+        .rule-title {
+            font-size: 1.4rem;
+            font-weight: 700;
+            color: #c77d2e;
+            margin-bottom: 12px;
+            border-left: 6px solid #ffb85e;
+            padding-left: 15px;
+        }
+
+        .rule-desc {
+            background: #fff3e2;
+            border-radius: 24px;
+            padding: 14px 18px;
+            font-family: 'JetBrains Mono', monospace, 'Courier New';
+            font-size: 0.95rem;
+            line-height: 1.6;
+        }
+
+        .example {
+            margin-top: 12px;
+            color: #5c4b32;
+            background: #f2e9da;
+            border-radius: 20px;
+            padding: 10px 16px;
+            font-size: 0.9rem;
+        }
+
+        .example span {
+            font-weight: bold;
+            color: #c9611e;
+        }
+
+        /* 常用对照表 */
+        .table-wrapper {
+            background: #faf4ea;
+            border-radius: 36px;
+            padding: 18px;
+            margin: 30px 0 20px;
+            box-shadow: inset 0 0 0 1px #fff3e4, 0 8px 18px rgba(0,0,0,0.05);
+        }
+
+        .table-title {
+            font-size: 1.3rem;
+            font-weight: bold;
+            color: #a56629;
+            margin-bottom: 16px;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .conv-table {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(180px, 1fr));
+            gap: 12px;
+        }
+
+        .conv-item {
+            background: white;
+            border-radius: 40px;
+            padding: 8px 12px;
+            text-align: center;
+            font-weight: 500;
+            font-family: monospace;
+            font-size: 0.9rem;
+            box-shadow: 0 2px 6px rgba(0,0,0,0.05);
+            transition: all 0.2s;
+            border: 1px solid #f3dbbd;
+        }
+
+        /* 实时转换器 */
+        .convert-title {
+            font-size: 1.4rem;
+            font-weight: bold;
+            text-align: center;
+            color: #d17a2b;
+            margin-bottom: 20px;
+        }
+
+        .convert-group {
+            margin-bottom: 24px;
+        }
+
+        .convert-label {
+            font-weight: 600;
+            margin-bottom: 6px;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .convert-input {
+            width: 100%;
+            padding: 14px 16px;
+            font-size: 1rem;
+            border-radius: 60px;
+            border: 2px solid #e7cba5;
+            background: white;
+            font-family: monospace;
+            font-weight: 500;
+            transition: 0.15s;
+            outline: none;
+        }
+
+        .convert-input:focus {
+            border-color: #f0a64a;
+            box-shadow: 0 0 0 3px #ffd8a8;
+        }
+
+        .row-buttons {
+            display: flex;
+            gap: 12px;
+            justify-content: center;
+            margin: 10px 0 8px;
+        }
+
+        .tiny-btn {
+            background: #ffdaa5;
+            border: none;
+            border-radius: 60px;
+            padding: 6px 12px;
+            font-size: 0.75rem;
+            cursor: pointer;
+            font-weight: bold;
+            color: #7a4b1a;
+        }
+
+        .footnote {
+            font-size: 0.7rem;
+            text-align: center;
+            margin-top: 20px;
+            color: #9c845c;
+            border-top: 1px solid #efe3cf;
+            padding-top: 18px;
+        }
+
+        @media (max-width: 780px) {
+            .notebook {
+                padding: 20px;
+            }
+            .rule-title {
+                font-size: 1.2rem;
+            }
+        }
+    </style>
+</head>
+<body>
+<div class="notebook">
+    <h1>
+        <span class="title-main">📐 分数换算推算笔记</span>
+        <span class="badge">小数⇄分数⇄百分数 · 互动学习</span>
+    </h1>
+    <div class="sub">
+        🧮 核心关系：小数 ↔ 分数 ↔ 百分数 &nbsp;&nbsp;|&nbsp;&nbsp; 四步换算技巧 + 实时转换器 + 常用对照表
+    </div>
+
+    <div class="flex-grid">
+        <!-- 左边规则与示例区 -->
+        <div class="rules-area">
+            <!-- 规则1: 小数化分数 -->
+            <div class="rule-card">
+                <div class="rule-title">① 小数 → 分数</div>
+                <div class="rule-desc">
+                    看小数有几位 → 一位分母10，两位分母100，三位分母1000 → 再约成最简分数。
+                </div>
+                <div class="example">
+                    📘 例：<span>0.2</span> = \( \frac{2}{10} \) = \( \frac{1}{5} \) &nbsp;&nbsp;|&nbsp;&nbsp;
+                    <span>0.25</span> = \( \frac{25}{100} \) = \( \frac{1}{4} \) <br>
+                    <span>0.48</span> = \( \frac{48}{100} \) = \( \frac{12}{25} \)
+                </div>
+            </div>
+
+            <!-- 规则2: 分数转小数 -->
+            <div class="rule-card">
+                <div class="rule-title">② 分数 → 小数</div>
+                <div class="rule-desc">
+                    分子 ÷ 分母，直接计算（可用除法或计算器）。
+                </div>
+                <div class="example">
+                    📘 例：<span>\( \frac{1}{4} \)</span> = 1 ÷ 4 = 0.25 &nbsp;&nbsp;|&nbsp;&nbsp;
+                    <span>\( \frac{3}{5} \)</span> = 3 ÷ 5 = 0.6 <br>
+                    <span>\( \frac{3}{8} \)</span> = 3 ÷ 8 = 0.375
+                </div>
+            </div>
+
+            <!-- 规则3: 分数/小数化百分数 -->
+            <div class="rule-card">
+                <div class="rule-title">③ 分数/小数 → 百分数</div>
+                <div class="rule-desc">
+                    ×100，加上 % 符号。
+                </div>
+                <div class="example">
+                    📘 例：<span>0.35</span> × 100 = 35% &nbsp;&nbsp;|&nbsp;&nbsp;
+                    <span>\( \frac{1}{2} \)</span> = 0.5 = 50% <br>
+                    <span>0.125</span> = 12.5% &nbsp;&nbsp;|&nbsp;&nbsp;
+                    <span>\( \frac{3}{4} \)</span> = 0.75 = 75%
+                </div>
+            </div>
+
+            <!-- 规则4: 百分数转小数/分数 -->
+            <div class="rule-card">
+                <div class="rule-title">④ 百分数 → 小数 / 分数</div>
+                <div class="rule-desc">
+                    去掉 % 符号，除以100 → 得到小数，再化简得到分数。
+                </div>
+                <div class="example">
+                    📘 例：<span>60%</span> = 60 ÷ 100 = 0.6 = \( \frac{3}{5} \) <br>
+                    <span>48%</span> = 0.48 = \( \frac{12}{25} \) &nbsp;&nbsp;|&nbsp;&nbsp;
+                    <span>12.5%</span> = 0.125 = \( \frac{1}{8} \)
+                </div>
+            </div>
+        </div>
+
+        <!-- 右侧实时换算器 -->
+        <div class="converter-area">
+            <div class="convert-title">⚡ 实时换算实验室</div>
+            <div class="convert-group">
+                <div class="convert-label">🔢 小数</div>
+                <input type="text" id="decimalInput" class="convert-input" placeholder="例: 0.75 或 .25" value="0.75">
+            </div>
+            <div class="convert-group">
+                <div class="convert-label">📐 分数 (分子/分母)</div>
+                <input type="text" id="fractionInput" class="convert-input" placeholder="例: 3/4 或 1/2" value="3/4">
+            </div>
+            <div class="convert-group">
+                <div class="convert-label">📊 百分数</div>
+                <input type="text" id="percentInput" class="convert-input" placeholder="例: 75%" value="75%">
+            </div>
+            <div class="row-buttons">
+                <button id="syncBtn" class="tiny-btn">🔄 同步刷新</button>
+            </div>
+            <div class="footnote" style="margin-top: 6px; border-top: none; font-size:0.7rem">
+                💡 修改任意一个输入框，其他两个自动换算！支持小数、带分数(如1/2)、百分号。
+            </div>
+        </div>
+    </div>
+
+    <!-- 常用对照表（完整列表） -->
+    <div class="table-wrapper">
+        <div class="table-title">📖 常用分数·小数·百分数 对照表</div>
+        <div class="conv-table" id="commonTable">
+            <!-- 动态生成或静态 -->
+        </div>
+    </div>
+
+    <!-- 补充示例说明 -->
+    <div style="background:#f0e7d9; border-radius: 24px; padding: 12px 20px; margin-top: 8px;">
+        <span style="font-weight: bold; color:#b6560c;">📎 补充换算示例：</span><br>
+        0.48 = 48/100 = 12/25 = 48% &nbsp;&nbsp;|&nbsp;&nbsp;
+        3 ÷ 8 = 0.375 = 37.5% &nbsp;&nbsp;|&nbsp;&nbsp;
+        120% = 1.2 = 6/5
+    </div>
+    <div class="footnote">
+        🌟 小技巧：分数化百分数可先化成小数再乘100；百分数化分数先写成分母100再约分。<br>
+        ✨ 分数换算笔记 · 支持真分数、带分数（输入如“3/5”）
+    </div>
+</div>
+
+<script>
+    (function() {
+        // DOM 元素
+        const decimalInput = document.getElementById('decimalInput');
+        const fractionInput = document.getElementById('fractionInput');
+        const percentInput = document.getElementById('percentInput');
+        const syncBtn = document.getElementById('syncBtn');
+
+        // 辅助函数: 约分分数 (分子分母均为整数)
+        function reduceFraction(numerator, denominator) {
+            if (denominator === 0) return { numerator: 0, denominator: 1 };
+            let a = Math.abs(numerator);
+            let b = Math.abs(denominator);
+            const gcd = (x, y) => y === 0 ? x : gcd(y, x % y);
+            let divisor = gcd(a, b);
+            if (divisor === 0) divisor = 1;
+            let sign = (denominator < 0) ? -1 : 1;
+            return {
+                numerator: sign * (numerator / divisor),
+                denominator: Math.abs(denominator / divisor)
+            };
+        }
+
+        // 解析分数输入 "3/4" 或 "1/2"  支持整数 "2" -> 2/1
+        function parseFractionString(fracStr) {
+            fracStr = fracStr.trim();
+            if (fracStr.includes('/')) {
+                let parts = fracStr.split('/');
+                let num = parseFloat(parts[0]);
+                let den = parseFloat(parts[1]);
+                if (isNaN(num) || isNaN(den) || den === 0) return null;
+                return { numerator: num, denominator: den };
+            } else {
+                // 整数形式
+                let val = parseFloat(fracStr);
+                if (isNaN(val)) return null;
+                return { numerator: val, denominator: 1 };
+            }
+        }
+
+        // 小数转分数 (精确转换，支持有限小数)
+        function decimalToFraction(decimalValue) {
+            if (isNaN(decimalValue)) return null;
+            let str = decimalValue.toString();
+            let integerPart = Math.floor(decimalValue);
+            let fractional = decimalValue - integerPart;
+            if (Math.abs(fractional) < 1e-12) {
+                return { numerator: integerPart, denominator: 1 };
+            }
+            // 处理小数位数
+            let parts = str.split('.');
+            if (parts.length < 2) return { numerator: decimalValue, denominator: 1 };
+            let decimals = parts[1].replace(/[eE].*$/, '');
+            let denominator = Math.pow(10, decimals.length);
+            let numerator = Math.round(decimalValue * denominator);
+            let reduced = reduceFraction(numerator, denominator);
+            return reduced;
+        }
+
+        // 小数转百分数字符串
+        function decimalToPercent(decimalNum) {
+            if (isNaN(decimalNum)) return null;
+            let percent = decimalNum * 100;
+            let rounded = Math.round(percent * 1e8) / 1e8;
+            return rounded.toString() + "%";
+        }
+
+        // 百分数转小数 (去除%号)
+        function percentToDecimal(percentStr) {
+            percentStr = percentStr.trim().replace(/%/g, '');
+            let val = parseFloat(percentStr);
+            if (isNaN(val)) return null;
+            return val / 100;
+        }
+
+        // 百分数转最简分数
+        function percentToFraction(percentStr) {
+            let decimalVal = percentToDecimal(percentStr);
+            if (decimalVal === null) return null;
+            return decimalToFraction(decimalVal);
+        }
+
+        // 分数转小数
+        function fractionToDecimal(fracObj) {
+            if (!fracObj) return null;
+            return fracObj.numerator / fracObj.denominator;
+        }
+
+        // 分数转百分数 (通过小数转换)
+        function fractionToPercent(fracObj) {
+            let decimal = fractionToDecimal(fracObj);
+            if (decimal === null) return null;
+            return decimalToPercent(decimal);
+        }
+
+        // 根据小数更新所有
+        function updateFromDecimal(decimalNum) {
+            if (isNaN(decimalNum)) return false;
+            // 更新百分数
+            let percentVal = decimalToPercent(decimalNum);
+            if (percentVal !== null) percentInput.value = percentVal;
+            // 更新分数
+            let frac = decimalToFraction(decimalNum);
+            if (frac) {
+                let fracStr = `${frac.numerator}/${frac.denominator}`;
+                fractionInput.value = fracStr;
+            } else {
+                fractionInput.value = "?";
+            }
+            return true;
+        }
+
+        // 根据分数更新
+        function updateFromFraction(fracStr) {
+            let fracObj = parseFractionString(fracStr);
+            if (!fracObj) return false;
+            let decimalVal = fractionToDecimal(fracObj);
+            if (decimalVal === null) return false;
+            decimalInput.value = decimalVal.toString();
+            let percentVal = fractionToPercent(fracObj);
+            if (percentVal !== null) percentInput.value = percentVal;
+            return true;
+        }
+
+        // 根据百分数更新
+        function updateFromPercent(percentStr) {
+            let decimalVal = percentToDecimal(percentStr);
+            if (decimalVal === null) return false;
+            decimalInput.value = decimalVal.toString();
+            let frac = percentToFraction(percentStr);
+            if (frac) {
+                let fracStr = `${frac.numerator}/${frac.denominator}`;
+                fractionInput.value = fracStr;
+            } else {
+                fractionInput.value = "?";
+            }
+            return true;
+        }
+
+        // 通用同步：根据哪个输入框变化进行转换
+        let activeSource = null; // 防止循环触发
+
+        function syncFromDecimal() {
+            if (activeSource === 'decimal') return;
+            activeSource = 'decimal';
+            let raw = decimalInput.value.trim();
+            let decimalNum = parseFloat(raw);
+            if (isNaN(decimalNum)) {
+                // 非法数字时不清除别的，仅作提示
+                activeSource = null;
+                return;
+            }
+            updateFromDecimal(decimalNum);
+            activeSource = null;
+        }
+
+        function syncFromFraction() {
+            if (activeSource === 'fraction') return;
+            activeSource = 'fraction';
+            let fracStr = fractionInput.value.trim();
+            if (fracStr === "") {
+                activeSource = null;
+                return;
+            }
+            let fracObj = parseFractionString(fracStr);
+            if (!fracObj) {
+                activeSource = null;
+                return;
+            }
+            let decimalVal = fractionToDecimal(fracObj);
+            if (!isNaN(decimalVal)) {
+                decimalInput.value = decimalVal.toString();
+                let percentVal = fractionToPercent(fracObj);
+                if (percentVal !== null) percentInput.value = percentVal;
+            }
+            activeSource = null;
+        }
+
+        function syncFromPercent() {
+            if (activeSource === 'percent') return;
+            activeSource = 'percent';
+            let percentStr = percentInput.value.trim();
+            let decimalVal = percentToDecimal(percentStr);
+            if (decimalVal === null) {
+                activeSource = null;
+                return;
+            }
+            decimalInput.value = decimalVal.toString();
+            let frac = percentToFraction(percentStr);
+            if (frac) {
+                let fracStr = `${frac.numerator}/${frac.denominator}`;
+                fractionInput.value = fracStr;
+            }
+            activeSource = null;
+        }
+
+        // 事件绑定 (防止循环)
+        decimalInput.addEventListener('input', () => { syncFromDecimal(); });
+        fractionInput.addEventListener('input', () => { syncFromFraction(); });
+        percentInput.addEventListener('input', () => { syncFromPercent(); });
+        syncBtn.addEventListener('click', () => {
+            // 手动强制同步以当前小数为主（优先从decimal同步）
+            let decVal = parseFloat(decimalInput.value);
+            if (!isNaN(decVal)) updateFromDecimal(decVal);
+            else {
+                let fracObj = parseFractionString(fractionInput.value);
+                if (fracObj) updateFromFraction(fractionInput.value);
+                else {
+                    let percVal = percentToDecimal(percentInput.value);
+                    if (percVal !== null) updateFromPercent(percentInput.value);
+                }
+            }
+        });
+
+        // 构建常用对照表 (根据学生提供的完整数据)
+        const commonData = [
+            { frac: "1/2", decimal: "0.5", percent: "50%" },
+            { frac: "1/4", decimal: "0.25", percent: "25%" },
+            { frac: "3/4", decimal: "0.75", percent: "75%" },
+            { frac: "1/5", decimal: "0.2", percent: "20%" },
+            { frac: "2/5", decimal: "0.4", percent: "40%" },
+            { frac: "3/5", decimal: "0.6", percent: "60%" },
+            { frac: "4/5", decimal: "0.8", percent: "80%" },
+            { frac: "1/8", decimal: "0.125", percent: "12.5%" },
+            { frac: "3/8", decimal: "0.375", percent: "37.5%" },
+            { frac: "5/8", decimal: "0.625", percent: "62.5%" },
+            { frac: "7/8", decimal: "0.875", percent: "87.5%" },
+            { frac: "1/3", decimal: "0.333…", percent: "33.3%" },
+            { frac: "2/3", decimal: "0.666…", percent: "66.7%" },
+            { frac: "1/10", decimal: "0.1", percent: "10%" },
+            { frac: "3/10", decimal: "0.3", percent: "30%" },
+            { frac: "7/10", decimal: "0.7", percent: "70%" },
+            { frac: "9/10", decimal: "0.9", percent: "90%" }
+        ];
+
+        function buildTable() {
+            const container = document.getElementById('commonTable');
+            if (!container) return;
+            container.innerHTML = '';
+            commonData.forEach(item => {
+                const div = document.createElement('div');
+                div.className = 'conv-item';
+                div.innerHTML = `📌 ${item.frac} &nbsp; = &nbsp; ${item.decimal} &nbsp; = &nbsp; ${item.percent}`;
+                container.appendChild(div);
+            });
+        }
+        buildTable();
+
+        // 初始化默认示例 0.75 = 3/4 = 75%
+        function initDefault() {
+            decimalInput.value = "0.75";
+            fractionInput.value = "3/4";
+            percentInput.value = "75%";
+        }
+        initDefault();
+
+        // 增加对带分数的支持（用户可能输入 1 2/3 但简单处理为假分数，界面标注建议用 / ）
+        // 已经在分数解析中支持整数形式。
+        // 额外: 修正用户输入小数如“.5”转换为0.5
+        decimalInput.addEventListener('blur', function() {
+            let val = this.value.trim();
+            if (val.startsWith('.')) {
+                this.value = '0' + val;
+                syncFromDecimal();
+            }
+        });
+    })();
+</script>
+</body>
+</html>
